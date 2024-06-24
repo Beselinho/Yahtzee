@@ -356,7 +356,7 @@ tableChancesFH = readCSVFile('tableChanceForFH.csv')
 tableChancesSS = readCSVFile('tableChanceForSS.csv')
 
 print("Always the highest chance Strategy:")
-zero_hits_your_strategy, average_score_your_strategy = runSimulations(num_simulations, tableChancesFH, tableChancesSS, 'highst_chance_strategy')
+zero_hits_your_strategy, average_score_your_strategy = runSimulations(num_simulations, tableChancesFH, tableChancesSS, 'highest_chance_strategy')
 
 print("Expected Value Strategy:")
 zero_hits_your_expcted_strategy, average_score_your_expected_strategy = runSimulations(num_simulations, tableChancesFH, tableChancesSS, 'expected_value_strategy')
