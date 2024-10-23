@@ -516,6 +516,9 @@ def playRound(scoreboard):
 def playFullGame(numSimuations, scoreboard):       
     averageScore = 0
     upperScore = 0
+    goodScore = 0
+    badScore = 0
+    greatScore = 0
     index = 0
     while index < numSimuations:
         if index % 10000 == 0:
@@ -535,12 +538,19 @@ def playFullGame(numSimuations, scoreboard):
         if upperScore >= 63:
             totalScore += 35
             
-        #print("Total Score: ", totalScore) 
+        #print("Total Score: ", totalScore)
+        if totalScore < 250:
+            badScore += 1
+        elif totalScore >= 250 and totalScore <= 280:
+            goodScore += 1
+        else:
+            greatScore += 1
         averageScore += totalScore
         scoreVector.append(totalScore)
         index += 1
     
-    print("-------------------------Average Score:", averageScore / numSimuations, "------------------------------------------------------")
+    print("Average Score:", averageScore / numSimuations, "per 100000 games")
+    #print("Times it got a bad score :", badScore, "Times it got a good score :", goodScore, "Times it got a great score :", greatScore)
     #print("Score Vector: ", scoreVector)
 
 def mePlayYahtzee(scoreboard):
