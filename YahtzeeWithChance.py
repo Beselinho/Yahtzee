@@ -1,17 +1,39 @@
 import csv
 import random as rd
 import ast
-import os
+import numpy as np
 
+#scores caluculated based on the percentage they provided to reach the treeshold of 63 points
+ONES_SCORE = 4.66
+TWOS_SCORE = 9.33  
+THREES_SCORE = 13.99
+FOURS_SCORE = 18.66
+FIVES_SCORE = 23.33
+SIXES_SCORE = 27.975
+AVERAGE_THREE_OF_A_KIND_SCORE = 18
+AVERAGE_FOUR_OF_A_KIND_SCORE = 18
 FULL_HOUSE_SCORE = 25
 SMALL_STRAIGHT_SCORE = 30
+LARGE_STRAIGHT_SCORE = 40
+YATHZEE_SCORE = 50
 
-# base_dir = os.path.dirname(__file__)
-# csv_dir = os.path.join(base_dir,'CSV_Tabels')  # '..' to go up one directory
+combinationNames = [
+        " ","Ones", "Twos", "Threes", "Fours", "Fives", "Sixes",
+        "ToaK", "FoaK", "FH", "SS", "LS", "Yathzee", "Chance"
+    ]
 
-# Full paths to the specific CSV files
-filenameFH = "tableChanceForFH.csv"
-filenameSS = "tableChanceForSS.csv"
+filenameOnes = "CSV_Tables/TableOnes.csv"
+filenameTwos = "CSV_Tables/TableTwos.csv"
+filenameThrees =  "CSV_Tables/TableThrees.csv"
+filenameFours = "CSV_Tables/TableFours.csv"
+filenameFives = "CSV_Tables/TableFives.csv"
+filenameSixes = "CSV_Tables/TableSixes.csv"
+filenameToaK = "CSV_Tables/TableToaK.csv"
+filenameFoaK = "CSV_Tables/TableFoaK.csv"
+filenameFH = "CSV_Tables/TableFH.csv"
+filenameSS = "CSV_Tables/TableSS.csv"
+filenameLS = "CSV_Tables/TableLS.csv"
+filenameYathzee = "CSV_Tables/TableYathzee.csv"
 
 diceValues = range(1,7)
 numberOfDices = 5
@@ -42,9 +64,170 @@ def readCSVFile(filename):
     
     return tableChances
 
-
+tableChancesOnes = readCSVFile(filenameOnes)
+tableChancesTwos = readCSVFile(filenameTwos)
+tableChancesThrees = readCSVFile(filenameThrees)
+tableChancesFours = readCSVFile(filenameFours)
+tableChancesFives = readCSVFile(filenameFives)
+tableChancesSixes = readCSVFile(filenameSixes)
+tableChancesToaK = readCSVFile(filenameToaK)
+tableChancesFoaK = readCSVFile(filenameFoaK)
 tableChancesFH = readCSVFile(filenameFH)
 tableChancesSS = readCSVFile(filenameSS)
+tableChancesLS = readCSVFile(filenameLS)
+tableChancesYathzee = readCSVFile(filenameYathzee)
+
+# scoreboard = {
+#     "Ones": -1,
+#     "Twos": -1,
+#     "Threes": -1,
+#     "Fours": -1,
+#     "Fives": -1,
+#     "Sixes": -1,
+#     "ToaK": -1,
+#     "FoaK": -1,
+#     "FH": -1,
+#     "SS": -1,
+#     "LS": -1,
+#     "Yathzee": -1,
+#     "chance" : -1
+# }
+#             0,1,2,3,4,5,6,7,8,9,10,11,12,13      
+#scoreboard = [0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+#scoreboard declarat aici
+
+def determineScore(combination, scoreboard):
+    combination.sort()
+    score = 0
+    localScore = 0
+    hit = 0
+    freqVector = [0] * 6
+    
+    for die in combination:
+        freqVector[die - 1] += 1
+    
+    if scoreboard[1] == -1:
+        #Ones
+        localScore = freqVector[0] * 1
+        if (localScore > score):
+            score = localScore
+            hit = 1
+    if scoreboard[2] == -1:
+        #Twos
+        localScore = freqVector[1] * 2
+        if (localScore > score):
+            score = localScore
+            hit = 2
+    if scoreboard[3] == -1:
+        #Threes
+        localScore = freqVector[2] * 3
+        if (localScore > score):
+            score = localScore
+            hit = 3
+    if scoreboard[4] == -1:
+        #Fours
+        localScore = freqVector[3] * 4
+        if (localScore > score):
+            score = localScore
+            hit = 4
+    if scoreboard[5] == -1:
+        #Fives
+        localScore = freqVector[4] * 5
+        if (localScore > score):
+            score = localScore
+            hit = 5
+    if scoreboard[6] == -1:
+        #Sixes
+        localScore = freqVector[5] * 6
+        #print("localScore", localScore)
+        if (localScore > score):
+            score = localScore
+            hit = 6
+    if scoreboard[7] == -1:
+        #Three of a Kind
+        for no in freqVector:
+            if no >= 3:
+                localScore = sum(combination)
+                #print("localScore", localScore)
+                if (localScore > score):
+                    score = localScore
+                    hit = 7
+    if scoreboard[8] == -1:
+        #Four of a Kind
+        for no in freqVector:
+            if no >= 4:
+                localScore = sum(combination)
+                #print("localScore", localScore)
+                if (localScore > score):
+                    score = localScore
+                    hit = 8
+    if scoreboard[9] == -1:
+        #Full House
+        sortedFreq = sorted(freqVector)
+        if sortedFreq[-1] == 3 and sortedFreq[-2] == 2:
+            localScore = FULL_HOUSE_SCORE
+            #print("localScore", localScore)
+            if (localScore > score):
+                score = localScore
+                hit = 9
+    if scoreboard[10] == -1:
+        #Small Straight
+        if((freqVector[0] >= 1 and freqVector[1] >= 1 and freqVector[2] >= 1 and freqVector[3] >= 1) or (freqVector[1] >= 1 and freqVector[2] >= 1 and freqVector[3] >= 1 and freqVector[4] >= 1)
+        or (freqVector[2] >= 1 and freqVector[3] >= 1 and freqVector[4] >= 1 and freqVector[5] >= 1)):
+                localScore = SMALL_STRAIGHT_SCORE
+                #print("localScore", localScore)
+                if (localScore > score):
+                    score = localScore
+                    hit = 10
+    if scoreboard[11] == -1:
+        # Large Straight
+        auxCombination = combination.copy()
+        auxCombination.sort()
+        largeSequence1 = [1,2,3,4,5]
+        largeSequence2 = [2,3,4,5,6]
+        if auxCombination == largeSequence1 or auxCombination == largeSequence2:
+            localScore = LARGE_STRAIGHT_SCORE
+            #print("localScore", localScore)
+            if (localScore > score):
+                score = localScore
+                hit = 11
+    if scoreboard[13] == -1:
+        #Chance
+        localScore = sum(combination)
+        #print("localScore", localScore)
+        if localScore > score:
+            score = localScore
+            hit = 13
+            
+    #Yathzee
+    for no in freqVector:
+        if no == 5:
+            localScore = YATHZEE_SCORE
+            #print("localScore", localScore)
+            if (localScore > score):
+                score = localScore
+            hit = 12
+            
+    return score, hit
+    
+
+def checkThreeOfAKind(combination):
+    freqVector = [0] * 6
+    for die in combination:
+        freqVector[die - 1] += 1
+    for no in freqVector:
+        if no >= 3:
+            return True
+    return False
+
+def checkFourOfAKind(combination):
+    freqVector = [0] * 6
+    for die in combination:
+        freqVector[die - 1] += 1
+    for no in freqVector:
+        if no >= 4:
+            return True
+    return False
 
 def checkFullHouse(combination):
     freqVector = [0] * 7
@@ -55,34 +238,34 @@ def checkFullHouse(combination):
 
 def checkSmallStraight(combination):
     freqVector = [0] * 7
-    auxCombination = sorted(combination)
-    hitSS = 0
     
-    for i in range(len(auxCombination)):
-        freqVector[auxCombination[i]] += 1
-        
-    count = 0
-    for app in freqVector[1:5]:
-        if app >= 1:
-            count += 1
-        if count == 4:
-            hitSS = 1
-            break
-    count = 0
-    for app in freqVector[2:6]:
-        if app >= 1:
-            count += 1
-        if count == 4:
-            hitSS = 1
-            break
-    count = 0
-    for app in freqVector[3:7]:
-        if app >= 1:
-            count += 1
-        if count == 4:
-            hitSS = 1
-            break
-    return hitSS
+    for die in combination:
+        freqVector[die] += 1
+
+    # Check for consecutive sets
+    for start in range(1, 4):  # Only three possible starts (1, 2, 3)
+        if all(freqVector[start + i] > 0 for i in range(4)):
+            return True
+
+    return False
+
+def checkLargeStraight(combination):
+    auxCombination = combination.copy()
+    auxCombination.sort()
+    largeSequence1 = [1,2,3,4,5]
+    largeSequence2 = [2,3,4,5,6]
+    if auxCombination == largeSequence1 or auxCombination == largeSequence2:
+        return True
+    return False
+
+def checkYathzee(combination):
+    freqVector = [0] * 6
+    for die in combination:
+        freqVector[die - 1] += 1
+    for no in freqVector:
+        if no == 5:
+            return True
+    return False
 
 def checkForIdenticPairs(combination, diceNumber):
     appearanceVector = [0] * 7
@@ -136,233 +319,334 @@ def rollDice(num_dice):
     rd.seed()
     return [rd.randint(1, 6) for _ in range(num_dice)]
 
-def calculateInitialScore(yourCombination, FHS, SSS):
-    if checkFullHouse(yourCombination) and FHS == 0:
-        return FULL_HOUSE_SCORE
-    elif checkSmallStraight(yourCombination) and SSS == 0:
-        return SMALL_STRAIGHT_SCORE
-    else:
-        return 
-
-def bestAction(combination, table, actionsLeft):
-    keptPositions = []
-    chance = 0
-    field = "One" if actionsLeft == 1 else "Two"
-    key = createTableKey(combination)
-    if key in table:
-        chance = table[key][field + 'ActionChance']
-        keptPositions = table[key][field + 'ActionKeptPositions']
-    return chance, keptPositions
-
-def executeRoll(kept_positions, combination):
-    new_combination = [combination[i] for i in kept_positions]
-    num_new_rolls = 5 - len(new_combination)
-    new_combination.extend(rollDice(num_new_rolls))
-    new_combination.sort()
-    return new_combination
-
-def performRoll(yourCombination, tableChancesFH, tableChancesSS, FHS, SSS, rollNum):
-    fhChance, fhKeptPositions = bestAction(yourCombination, tableChancesFH, rollNum)
-    ssChance, ssKeptPositions = bestAction(yourCombination, tableChancesSS, rollNum)
-
-    fhChance = 0 if FHS else fhChance
-    ssChance = 0 if SSS else ssChance
-
-    if fhChance > ssChance:
-        yourCombination = executeRoll(fhKeptPositions, yourCombination)
-    else:
-        yourCombination = executeRoll(ssKeptPositions, yourCombination)
-    
-    return yourCombination
-
-def performRollForValue(yourCombination, tableChancesFH, tableChancesSS, FHS, SSS, rollNum):
-    fhChance, fhKeptPositions = bestAction(yourCombination, tableChancesFH, rollNum)
-    ssChance, ssKeptPositions = bestAction(yourCombination, tableChancesSS, rollNum)
-
-    fhChance = 0 if FHS else fhChance
-    ssChance = 0 if SSS else ssChance
-
-    if calculateExpectedValue(fhChance, FULL_HOUSE_SCORE) > calculateExpectedValue(ssChance, SMALL_STRAIGHT_SCORE):
-        yourCombination = executeRoll(fhKeptPositions, yourCombination)
-    else:
-        yourCombination = executeRoll(ssKeptPositions, yourCombination)
-    
-    return yourCombination
-
-def playRoundAlwaysRollAll():
-    yourCombination = rollDice(5)
-   # print(f"Initial Roll: {yourCombination}")
-    yourCombination.sort()
-
-    if checkFullHouse(yourCombination):
-        #print("You got a Full House!")
-        return FULL_HOUSE_SCORE
-    elif checkSmallStraight(yourCombination):
-        #print("You got a Small Straight!")
-        return SMALL_STRAIGHT_SCORE
-
-    yourCombination = rollDice(5)
-    #print(f"Second Roll: {yourCombination}")
-    yourCombination.sort()
-
-    if checkFullHouse(yourCombination):
-        #print("You got a Full House!")
-        return FULL_HOUSE_SCORE
-    elif checkSmallStraight(yourCombination):
-        #print("You got a Small Straight!")
-        return SMALL_STRAIGHT_SCORE
-    else:
-        #print("You got nothing
-        return 0
-
-def playRoundRandomFirstRoll(tableChancesFH, tableChancesSS, FHS, SSS):
-    yourCombination = rollDice(5)
-   # print(f"Initial Roll: {yourCombination}")
-    yourCombination.sort()
-
-    if checkFullHouse(yourCombination) and FHS == 0:
-        #print("You got a Full House!")
-        return FULL_HOUSE_SCORE
-    elif checkSmallStraight(yourCombination) and SSS == 0:
-        #print("You got a Small Straight!")
-        return SMALL_STRAIGHT_SCORE
-
-    fhChance, fhKeptPositions = bestAction(yourCombination, tableChancesFH, 1)
-    ssChance, ssKeptPositions = bestAction(yourCombination, tableChancesSS, 1)
-    
-    fhChance = 0 if FHS else fhChance
-    ssChance = 0 if SSS else ssChance
-
-    if fhChance > ssChance and FHS == 0:
-        yourCombination = executeRoll(fhKeptPositions, yourCombination)
-        if checkFullHouse(yourCombination):
-            #print("You got a Full House!")
-            return FULL_HOUSE_SCORE
-        elif checkSmallStraight(yourCombination):
-            #print("You got a Small Straight!")
-            return SMALL_STRAIGHT_SCORE
-    else:
-        yourCombination = executeRoll(ssKeptPositions, yourCombination)
-        if checkSmallStraight(yourCombination):
-            #print("You got a Small Straight!")
-            return SMALL_STRAIGHT_SCORE
-        elif checkFullHouse(yourCombination):
-            #print("You got a Full House!")
-            return FULL_HOUSE_SCORE
-
-    return 0
-
-def playRoundYourStrategy(tableChancesFH, tableChancesSS, FHS, SSS):
-    yourCombination = rollDice(5)
-    yourCombination.sort()
-    
-    score = calculateInitialScore(yourCombination, FHS, SSS)
-    alreadyHit = 1 if score else 0
-
-    if not alreadyHit:
-        yourCombination = performRoll(yourCombination, tableChancesFH, tableChancesSS, FHS, SSS, 0)
-
-        if checkFullHouse(yourCombination):
-            score = FULL_HOUSE_SCORE
-        elif checkSmallStraight(yourCombination):
-            score = SMALL_STRAIGHT_SCORE
-        else:
-            yourCombination = performRoll(yourCombination, tableChancesFH, tableChancesSS, FHS, SSS, 1)
-            
-            if checkFullHouse(yourCombination):
-                score = FULL_HOUSE_SCORE
-            elif checkSmallStraight(yourCombination):
-                score = SMALL_STRAIGHT_SCORE
-            else:
-                score = 0
-
-    return score
-
 def calculateExpectedValue(chance, score):
     return chance * score
 
-def playRoundYourStrategyValue(tableChancesFH, tableChancesSS, FHS, SSS):
-    yourCombination = rollDice(5)
-    yourCombination.sort()
+def playRound(scoreboard):
+    initialRoll = rollDice(5)
+    initialRoll.sort()
+    #print("Initial Roll :", initialRoll)
+    tableKey1 = createTableKey(initialRoll)
+   
     
-    score = calculateInitialScore(yourCombination, FHS, SSS)
-    alreadyHit = 1 if score else 0
-
-    if not alreadyHit:
-        yourCombination = performRollForValue(yourCombination, tableChancesFH, tableChancesSS, FHS, SSS, 0)
-
-        if checkFullHouse(yourCombination):
-            score = FULL_HOUSE_SCORE
-        elif checkSmallStraight(yourCombination):
-            score = SMALL_STRAIGHT_SCORE
-        else:
-            yourCombination = performRollForValue(yourCombination, tableChancesFH, tableChancesSS, FHS, SSS, 1)
-            
-            if checkFullHouse(yourCombination):
-                score = FULL_HOUSE_SCORE
-            elif checkSmallStraight(yourCombination):
-                score = SMALL_STRAIGHT_SCORE
+    bestExpected1 = [0] * 14
+    bestExpected1Postions = [0] * 14 
+    for index in range(1, len(scoreboard)):
+        if scoreboard[index] == -1:
+            if index == 1:
+                bestExpected1[index] = calculateExpectedValue(tableChancesOnes[tableKey1]['TwoActionChance'], ONES_SCORE)
+                bestExpected1Postions[index] = tableChancesOnes[tableKey1]['TwoActionKeptPositions']
+            elif index == 2:
+                bestExpected1[index] = calculateExpectedValue(tableChancesTwos[tableKey1]['TwoActionChance'], TWOS_SCORE)
+                bestExpected1Postions[index] = tableChancesTwos[tableKey1]['TwoActionKeptPositions']
+            elif index == 3:
+                bestExpected1[index] = calculateExpectedValue(tableChancesThrees[tableKey1]['TwoActionChance'], THREES_SCORE)
+                bestExpected1Postions[index] = tableChancesThrees[tableKey1]['TwoActionKeptPositions']
+            elif index == 4:
+                bestExpected1[index] = calculateExpectedValue(tableChancesFours[tableKey1]['TwoActionChance'], FOURS_SCORE)
+                bestExpected1Postions[index] = tableChancesFours[tableKey1]['TwoActionKeptPositions']
+            elif index == 5:
+                bestExpected1[index] = calculateExpectedValue(tableChancesFives[tableKey1]['TwoActionChance'], FIVES_SCORE)
+                bestExpected1Postions[index] = tableChancesFives[tableKey1]['TwoActionKeptPositions']
+            elif index == 6:
+                bestExpected1[index] = calculateExpectedValue(tableChancesSixes[tableKey1]['TwoActionChance'], SIXES_SCORE)
+                bestExpected1Postions[index] = tableChancesSixes[tableKey1]['TwoActionKeptPositions']
+            elif index == 7:
+                bestExpected1[index] = calculateExpectedValue(tableChancesToaK[tableKey1]['TwoActionChance'], AVERAGE_THREE_OF_A_KIND_SCORE)
+                bestExpected1Postions[index] = tableChancesToaK[tableKey1]['TwoActionKeptPositions']
+            elif index == 8:
+                bestExpected1[index] = calculateExpectedValue(tableChancesFoaK[tableKey1]['TwoActionChance'], AVERAGE_FOUR_OF_A_KIND_SCORE)
+                bestExpected1Postions[index] = tableChancesFoaK[tableKey1]['TwoActionKeptPositions']
+            elif index == 9:
+                bestExpected1[index] = calculateExpectedValue(tableChancesFH[tableKey1]['TwoActionChance'], FULL_HOUSE_SCORE)
+                bestExpected1Postions[index] = tableChancesFH[tableKey1]['TwoActionKeptPositions']
+            elif index == 10:
+                bestExpected1[index] = calculateExpectedValue(tableChancesSS[tableKey1]['TwoActionChance'], SMALL_STRAIGHT_SCORE)
+                bestExpected1Postions[index] = tableChancesSS[tableKey1]['TwoActionKeptPositions']
+            elif index == 11:
+                bestExpected1[index] = calculateExpectedValue(tableChancesLS[tableKey1]['TwoActionChance'], LARGE_STRAIGHT_SCORE)
+                bestExpected1Postions[index] = tableChancesLS[tableKey1]['TwoActionKeptPositions']
+            elif index == 12:
+                bestExpected1[index] = calculateExpectedValue(tableChancesYathzee[tableKey1]['TwoActionChance'], YATHZEE_SCORE)
+                bestExpected1Postions[index] = tableChancesYathzee[tableKey1]['TwoActionKeptPositions']
+            elif index == 13:
+                bestExpected1[index] = sum(initialRoll)
+                bestExpected1Postions[index] = [0,1,2,3,4]
             else:
-                score = 0
-
-    return score
-
-
-def playGame(tableChancesFH, tableChancesSS, strategy):
-    total_score = 0
-    fhScoreObtained = False
-    ssScoreObtained = False
-
-    for round_number in range(1, 3):
-        #print(f"Round {round_number}:")
-        if strategy == 'always_roll_all':
-            roundScore = playRoundAlwaysRollAll()
-        elif strategy == 'random_first_roll':
-            roundScore = playRoundRandomFirstRoll(tableChancesFH, tableChancesSS, fhScoreObtained, ssScoreObtained)
-        elif strategy == 'highest_chance_strategy':
-            roundScore = playRoundYourStrategy(tableChancesFH, tableChancesSS, fhScoreObtained, ssScoreObtained)
-        elif strategy == 'expected_value_strategy':
-            roundScore = playRoundYourStrategyValue(tableChancesFH, tableChancesSS, fhScoreObtained, ssScoreObtained)
-        else:
-            raise ValueError("Unknown strategy")
-        #print(f"Round {round_number} Score: {roundScore}")
+                break
+    
+    
+    reversedBestExpected1 = bestExpected1[::-1]
+    reversedBestExpected1Positions = bestExpected1Postions[::-1]
+    highestExpectedIdx1 = np.argmax(reversedBestExpected1)        
+    # if reversedBestExpected1[13] < 20:
+    #     highestExpectedIdx1 = np.argmax(reversedBestExpected1[1:12])
+    # else:
+    #     highestExpectedIdx1 = 13
+    highestExpectedPositionIdx1 = reversedBestExpected1Positions[highestExpectedIdx1]
+    
+    # print("------1st------",bestExpected1)
+    # print("------1st------",bestExpected1Postions)
+    # print("------1stCombo------",13 - highestExpectedIdx1)
+    # print("------1stPositions------",highestExpectedPositionIdx1)
+    
+    firstRoll = []
+    if isinstance(highestExpectedPositionIdx1, list) and len(highestExpectedPositionIdx1) != 0:
+        for i in highestExpectedPositionIdx1:
+            firstRoll.append(initialRoll[i])
+    nextRoll = rollDice(5 - len(firstRoll))
+    for i in range(len(nextRoll)):
+        firstRoll.append(nextRoll[i])
         
-        total_score += roundScore
-        fhScoreObtained = True if roundScore == FULL_HOUSE_SCORE else fhScoreObtained
-        ssScoreObtained = True if roundScore == SMALL_STRAIGHT_SCORE else ssScoreObtained
+    firstRoll.sort() 
+    #print("Your Dices after the first roll : ",firstRoll)
     
-    return total_score
-
-def runSimulations(num_simulations, tableChancesFH, tableChancesSS, strategy):
-    total_scores = 0
-    zero_hits = 0
     
-    for _ in range(num_simulations):
-        total_score = playGame(tableChancesFH, tableChancesSS, strategy)
-        total_scores += total_score
-        if total_score == 0:
-            zero_hits += 1
+    tableKey2 = createTableKey(firstRoll)
+   
     
-    average_score = total_scores / num_simulations
+    bestExpected2 = [0] * 14
+    bestExpected2Postions = [0] * 14 
+    for index in range(1, len(scoreboard)):
+        if scoreboard[index] == -1:
+            if index == 1:
+                bestExpected2[index] = calculateExpectedValue(tableChancesOnes[tableKey2]['OneActionChance'], ONES_SCORE)
+                bestExpected2Postions[index] = tableChancesOnes[tableKey2]['OneActionKeptPositions']
+            elif index == 2:
+                bestExpected2[index] = calculateExpectedValue(tableChancesTwos[tableKey2]['OneActionChance'], TWOS_SCORE)
+                bestExpected2Postions[index] = tableChancesTwos[tableKey2]['OneActionKeptPositions']
+            elif index == 3:
+                bestExpected2[index] = calculateExpectedValue(tableChancesThrees[tableKey2]['OneActionChance'], THREES_SCORE)
+                bestExpected2Postions[index] = tableChancesThrees[tableKey2]['OneActionKeptPositions']
+            elif index == 4:
+                bestExpected2[index] = calculateExpectedValue(tableChancesFours[tableKey2]['OneActionChance'], FOURS_SCORE)
+                bestExpected2Postions[index] = tableChancesFours[tableKey2]['OneActionKeptPositions']
+            elif index == 5:
+                bestExpected2[index] = calculateExpectedValue(tableChancesFives[tableKey2]['OneActionChance'], FIVES_SCORE)
+                bestExpected2Postions[index] = tableChancesFives[tableKey2]['OneActionKeptPositions']
+            elif index == 6:
+                bestExpected2[index] = calculateExpectedValue(tableChancesSixes[tableKey2]['OneActionChance'], SIXES_SCORE)
+                bestExpected2Postions[index] = tableChancesSixes[tableKey2]['OneActionKeptPositions']
+            elif index == 7:
+                bestExpected2[index] = calculateExpectedValue(tableChancesToaK[tableKey2]['OneActionChance'], AVERAGE_THREE_OF_A_KIND_SCORE)
+                bestExpected2Postions[index] = tableChancesToaK[tableKey2]['OneActionKeptPositions']
+            elif index == 8:
+                bestExpected2[index] = calculateExpectedValue(tableChancesFoaK[tableKey2]['OneActionChance'], AVERAGE_FOUR_OF_A_KIND_SCORE)
+                bestExpected2Postions[index] = tableChancesFoaK[tableKey2]['OneActionKeptPositions']
+            elif index == 9:
+                bestExpected2[index] = calculateExpectedValue(tableChancesFH[tableKey2]['OneActionChance'], FULL_HOUSE_SCORE)
+                bestExpected2Postions[index] = tableChancesFH[tableKey2]['OneActionKeptPositions']
+            elif index == 10:
+                bestExpected2[index] = calculateExpectedValue(tableChancesSS[tableKey2]['OneActionChance'], SMALL_STRAIGHT_SCORE)
+                bestExpected2Postions[index] = tableChancesSS[tableKey2]['OneActionKeptPositions']
+            elif index == 11:
+                bestExpected2[index] = calculateExpectedValue(tableChancesLS[tableKey2]['OneActionChance'], LARGE_STRAIGHT_SCORE)
+                bestExpected2Postions[index] = tableChancesLS[tableKey2]['OneActionKeptPositions']
+            elif index == 12:
+                bestExpected2[index] = calculateExpectedValue(tableChancesYathzee[tableKey2]['OneActionChance'], YATHZEE_SCORE)
+                bestExpected2Postions[index] = tableChancesYathzee[tableKey2]['OneActionKeptPositions']
+            elif index == 13:
+                bestExpected2[index] = sum(firstRoll)
+                bestExpected2Postions[index] = [0,1,2,3,4]
+            else:
+                break
+            
+    reversedBestExpected2 = bestExpected2[::-1]
+    reversedBestExpected2Positions = bestExpected2Postions[::-1]
+    highestExpectedIdx2 = np.argmax(reversedBestExpected2)
+    # if reversedBestExpected2[13] < 20:
+    #     highestExpectedIdx2 = np.argmax(reversedBestExpected2[1:12])
+    # else:
+    #     highestExpectedIdx2 = 13
+    highestExpectedPositionIdx2 = reversedBestExpected2Positions[highestExpectedIdx2]
     
-    print(f"Strategy: {strategy}")
-    print(f"Number of times score was 0: {zero_hits}")
-    print(f"Average score over {num_simulations} simulations: {average_score}")
+    # print("------2nd--------",bestExpected2)
+    # print("------2nd------",bestExpected2Postions)
+    # print("------2ndCombo-----",13 - highestExpectedIdx2)
+    # print("------2ndPositions------",highestExpectedPositionIdx2)
     
-    return zero_hits, average_score
+    secondRoll = [firstRoll[i] for i in highestExpectedPositionIdx2]
+    randomThing = 0
+    if len(secondRoll) == 5:
+        #print("No more sense for rolling")
+        randomThing += 1
+    else:
+        nextRoll = rollDice(5 - len(secondRoll))
+        secondRoll.extend(nextRoll)
+     
+    secondRoll.sort()   
+    #print("Your Dices after the second roll : ",secondRoll)
+    
+    
+    roundScore, hit = determineScore(secondRoll, scoreboard)
+    
+    secondYahtzee = False
+    if hit == 12:
+        secondYahtzee = True
+        if scoreboard[hit] == YATHZEE_SCORE:
+            scoreboard[0] += 100
+            #if second yahtzee is scored, the player gets bonus 100 points and can score in any category he wants.
+            if scoreboard[secondRoll[0]] == -1:
+                scoreboard[secondRoll[0]] = sum(secondRoll)
+            elif scoreboard[7] == -1:
+                scoreboard[7] = sum(secondRoll)
+            elif scoreboard[8] == -1:
+                scoreboard[8] = sum(secondRoll)
+            elif scoreboard[9] == -1:
+                scoreboard[9] = FULL_HOUSE_SCORE
+            elif scoreboard[10] == -1:
+                scoreboard[10] = SMALL_STRAIGHT_SCORE
+            elif scoreboard[11] == -1:
+                scoreboard[11] = LARGE_STRAIGHT_SCORE
+            else:
+                scoreboard[np.argmin(scoreboard)] = 0
+        else:
+            scoreboard[hit] = YATHZEE_SCORE
+            
+    if not secondYahtzee:           
+        if roundScore != 0:
+            scoreboard[hit] = roundScore
+        else:
+            scoreboard[np.argmin(scoreboard)] = 0
+    
+    # print("Scoreboard after the round",scoreboard)
+    # print("Score for the round",roundScore)
+    # print("Hit:", hit)
+    
+def playFullGame(numSimuations, scoreboard):       
+    averageScore = 0
+    upperScore = 0
+    index = 0
+    while index < numSimuations:
+        if index % 10000 == 0:
+            print(index)
+        totalScore = 0
+        scoreboard = [0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+        for i in range(13):
+            #print("Round ", i + 1)
+            playRound(scoreboard)
+        
+        # for i in range(1, len(scoreboard)):
+        #     print(f"{combinationNames[i]} : {scoreboard[i]}")
+        
+        totalScore = sum(scoreboard)
+        for i in range(1,7):
+            upperScore += scoreboard[i]
+        if upperScore >= 63:
+            totalScore += 35
+            
+        #print("Total Score: ", totalScore) 
+        averageScore += totalScore
+        scoreVector.append(totalScore)
+        index += 1
+    
+    print("-------------------------Average Score:", averageScore / numSimuations, "------------------------------------------------------")
+    #print("Score Vector: ", scoreVector)
 
-num_simulations = 1000000
-tableChancesFH = readCSVFile('tableChanceForFH.csv')
-tableChancesSS = readCSVFile('tableChanceForSS.csv')
+def mePlayYahtzee(scoreboard):
+    initialRoll = rollDice(5)
+    print("Initial Roll :", initialRoll)
 
-print("Always the highest chance Strategy:")
-zero_hits_your_strategy, average_score_your_strategy = runSimulations(num_simulations, tableChancesFH, tableChancesSS, 'highest_chance_strategy')
+    print("Select the positions of the dice you want to keep (1-5) separated by spaces, or type 0 to keep all")
+    keptDice = input().split()
+    if '0' in keptDice:
+        firstRoll = initialRoll
+    else:
+        keptDice = [int(pos) - 1 for pos in keptDice if pos.isdigit() and 0 < int(pos) <= 5]
+        print("You chose to keep these dice:", [initialRoll[pos] for pos in keptDice])
 
-print("Expected Value Strategy:")
-zero_hits_your_expcted_strategy, average_score_your_expected_strategy = runSimulations(num_simulations, tableChancesFH, tableChancesSS, 'expected_value_strategy')
+        numToRoll = 5 - len(keptDice)
+        firstRoll = rollDice(numToRoll)
+        for pos in keptDice:
+            firstRoll.append(initialRoll[pos])
+    print("Your Dice after the first roll:", firstRoll)
 
-print("\nAlways Roll All Dice Strategy:")
-zero_hits_always_roll_all, average_score_always_roll_all = runSimulations(num_simulations, tableChancesFH, tableChancesSS, 'always_roll_all')
+    print("Select the positions of the dice you want to keep (1-5) separated by spaces, or type 0 to keep all")
+    keptDice = input().split()
+    if '0' in keptDice:
+        secondRoll = firstRoll
+    else:
+        keptDice = [int(pos) - 1 for pos in keptDice if pos.isdigit() and 0 < int(pos) <= 5]
+        print("You chose to keep these dice:", [firstRoll[pos] for pos in keptDice])
 
-print("\nRandom First Roll Strategy:")
-zero_hits_random_first_roll, average_score_random_first_roll = runSimulations(num_simulations, tableChancesFH, tableChancesSS, 'random_first_roll')
+        numToRoll = 5 - len(keptDice)
+        secondRoll = rollDice(numToRoll)
+        for pos in keptDice:
+            secondRoll.append(firstRoll[pos])
+    print("Your Dice after the second roll:", secondRoll)
+
+    ok = False
+    print("These are category codes : 1.Ones  2.Twos  3.Threes  4.Fours  5.Fives  6.Sixes 7.ToaK  8.FoaK  9.FH  10.SS  11.LS  12.Yahtzee  13.Chance")
+    print("Choose in which category you want to score :")
+    while not ok:
+        userChoice = int(input())
+        if scoreboard[userChoice] == -1:
+            ok = True
+            if userChoice == 1:
+                scoreboard[userChoice] = sum(dice for dice in secondRoll if dice == 1)
+            elif userChoice == 2:
+                scoreboard[userChoice] = sum(dice for dice in secondRoll if dice == 2)
+            elif userChoice == 3:
+                scoreboard[userChoice] = sum(dice for dice in secondRoll if dice == 3)
+            elif userChoice == 4:
+                scoreboard[userChoice] = sum(dice for dice in secondRoll if dice == 4)
+            elif userChoice == 5:
+                scoreboard[userChoice] = sum(dice for dice in secondRoll if dice == 5)
+            elif userChoice == 6:
+                scoreboard[userChoice] = sum(dice for dice in secondRoll if dice == 6)
+            elif userChoice == 7:
+                if checkThreeOfAKind(secondRoll):
+                    scoreboard[userChoice] = sum(secondRoll)
+                else:
+                    scoreboard[userChoice] = 0
+            elif userChoice == 8:
+                if checkFourOfAKind(secondRoll):
+                    scoreboard[userChoice] = sum(secondRoll)
+                else:
+                    scoreboard[userChoice] = 0
+            elif userChoice == 9:
+                if checkFullHouse(secondRoll):
+                    scoreboard[userChoice] = FULL_HOUSE_SCORE
+                else:
+                    scoreboard[userChoice] = 0
+            elif userChoice == 10:
+                if checkSmallStraight(secondRoll):
+                    scoreboard[userChoice] = SMALL_STRAIGHT_SCORE
+                else:
+                    scoreboard[userChoice] = 0
+            elif userChoice == 11:
+                if checkLargeStraight(secondRoll):
+                    scoreboard[userChoice] = LARGE_STRAIGHT_SCORE
+                else:
+                    scoreboard[userChoice] = 0
+            elif userChoice == 12:
+                if checkYathzee(secondRoll):
+                    scoreboard[userChoice] = YATHZEE_SCORE
+                else:
+                    scoreboard[userChoice] = 0
+            elif userChoice == 13:
+                scoreboard[userChoice] = sum(secondRoll)
+        else:
+            print("Category already scored, please choose another one")
+    
+    print("Scoreboard after your round:")
+    for i in range(1, len(scoreboard)):
+        print(f"{combinationNames[i]} : {scoreboard[i]}")
+        
+
+def mePlayFullYahtzee(scoreboard):
+    for i in range(13):
+        print("Round ", i + 1)
+        mePlayYahtzee(scoreboard)
+
+    print("Final Score:" , sum(scoreboard))
+    
+    
+    
+
+scoreboard = [0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+scoreVector = []
+numSimulations = 100000 
+playFullGame(numSimulations, scoreboard)
+#mePlayFullYahtzee(scoreboard) 
+#print(scoreVector)

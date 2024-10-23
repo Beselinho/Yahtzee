@@ -26,6 +26,38 @@
 #print(len(uniqueOutcomes))
 
 
+def checkThreeOfAKind(combination):
+    freqVector = [0] * 6
+    for die in combination:
+        freqVector[die - 1] += 1
+    for no in freqVector:
+        if no >= 3:
+            return True
+    return False
+
+def checkSmallStraight(combination):
+    freqVector = [0] * 7
+    
+    for die in combination:
+        freqVector[die] += 1
+
+    # Check for consecutive sets
+    for start in range(1, 4):  # Only three possible starts (1, 2, 3)
+        if all(freqVector[start + i] > 0 for i in range(4)):
+            return True
+
+    return False
+
+def checkLargeStraight(combination):
+    auxCombination = combination.copy()
+    auxCombination.sort()
+    largeSequence1 = [1,2,3,4,5]
+    largeSequence2 = [2,3,4,5,6]
+    if auxCombination == largeSequence1 or auxCombination == largeSequence2:
+        return True
+    return False
+
+
 def rolls(n, k=6):
     if n:
         for i in range(k, 0, -1):
@@ -36,6 +68,45 @@ def rolls(n, k=6):
 
 distinct_rolls = list(rolls(5)) 
 
-for roll in distinct_rolls:
-    print(roll)
-    print("        ")
+def generateAllRolls(n, k=6):
+    if n == 0:
+        yield []
+    else:
+        for i in range(1, k+1):
+            for roll in generateAllRolls(n-1, k):
+                yield [i] + roll
+
+all_rolls = list(generateAllRolls(5))
+print(len(all_rolls))
+
+no = 0
+for roll in all_rolls:
+    if checkLargeStraight(roll):
+        no += 1
+#         print(roll)
+#         print("        ")
+
+# print("----------------",no, "------------------")
+
+scoreboard = {
+    "Ones": -1,
+    "Twos": -1,
+    "Threes": -1,
+    "Fours": -1,
+    "Fives": -1,
+    "Sixes": -1,
+    "ToaK": -1,
+    "FoaK": -1,
+    "FH": -1,
+    "SS": -1,
+    "LS": -1,
+    "Yathzee": -1,
+    "chance" : -1
+}
+
+# file = "CSV_Tables/Table"
+# for key in scoreboard.keys():
+#     if scoreboard[key] == -1:
+#         filename = file + key + ".csv"
+#         tableChances = read
+        

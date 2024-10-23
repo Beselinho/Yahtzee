@@ -2,7 +2,7 @@ import csv
 import random as rd
 import ast
 
-filename = "TableSS.csv"
+filename = "TableThrees.csv"
 
 diceValues = range(1,7)
 numberOfDices = 5
@@ -12,7 +12,6 @@ allPossible2DiceKept = [(0,1), (0,2), (0,3), (0,4), (1,2), (1,3), (1,4), (2,3), 
 allPossible3DiceKept = [(0,1,2), (0,1,3), (0,1,4), (0,2,3), (0,2,4), (0,3,4), (1,2,3), (1,2,4), (1,3,4), (2,3,4)]
 allPossible4DiceKept = [(0,1,2,3), (0,1,2,4), (0,1,3,4), (0,2,3,4), (1,2,3,4)]
 listOfDicePositions  = [[] for _ in range(4)] 
-
 
 def readCSVFile(filename):
     tableChances = {}
@@ -27,7 +26,6 @@ def readCSVFile(filename):
                 'OneKeptPositions': one_kept_positions
             }
     return tableChances 
-
 
 tableChances = readCSVFile(filename)
 
@@ -47,24 +45,17 @@ def generateAllRolls(n, k=6):
             for roll in generateAllRolls(n-1, k):
                 yield [i] + roll
 
-def checkSmallStraight(combination):
-    freqVector = [0] * 7
-    
-    for die in combination:
-        freqVector[die] += 1
-
-    # Check for consecutive sets
-    for start in range(1, 4):  # Only three possible starts (1, 2, 3)
-        if all(freqVector[start + i] > 0 for i in range(4)):
-            return True
-
-    return False
+def createTableKey(combination):
+    freqVector = [0] * 6
+    for diceFace in combination:
+        freqVector[diceFace - 1] += 1
+    key = ''.join(str(freqVector[i]) for i in range(len(freqVector)))
+    return key 
 
 def createTableKey(combination):
     freqVector = [0] * 6
     for diceFace in combination:
-      freqVector[diceFace - 1] += 1
-    
+        freqVector[diceFace - 1] += 1
     key = ''.join(str(freqVector[i]) for i in range(len(freqVector)))
     return key  
 
@@ -78,7 +69,6 @@ def checkForIdenticPairs(combination, diceNumber):
             if not appearanceVector[combination[pos]]:
                 appearanceVector[combination[pos]] = True
                 filteredPositions.append(pos)
-                
         return filteredPositions
 
     elif diceNumber == 2:
@@ -87,7 +77,6 @@ def checkForIdenticPairs(combination, diceNumber):
             if faceValues not in appearanceCounter:
                 appearanceCounter.append(faceValues)
                 filteredPositions.append(pos)
-                
         return filteredPositions
 
     elif diceNumber == 3:
@@ -96,7 +85,6 @@ def checkForIdenticPairs(combination, diceNumber):
             if faceValues not in appearanceCounter:
                 appearanceCounter.append(faceValues)
                 filteredPositions.append(pos)
-                
         return filteredPositions
 
     elif diceNumber == 4:
@@ -105,8 +93,15 @@ def checkForIdenticPairs(combination, diceNumber):
             if faceValues not in appearanceCounter:
                 appearanceCounter.append(faceValues)
                 filteredPositions.append(pos)
-                
-        return filteredPositions
+        return filteredPositions   
+
+def checkThrees(combination):
+    freqVector = [0] * 6
+    for die in combination:
+        freqVector[die - 1] += 1
+    if freqVector[2] == 5:
+        return True
+    return False
 
 def uniqueCombinationDice0(combination, halfFull):
     outcomeZero = list(generateAllRolls(5))
@@ -116,8 +111,8 @@ def uniqueCombinationDice0(combination, halfFull):
     
     if not halfFull:
         for finalCombination in outcomeZero:
-            hitFH = checkSmallStraight(finalCombination)
-            if hitFH:
+            hitYathzee = checkThrees(finalCombination)
+            if hitYathzee:
                 totalHits += 1
         chanceToHit = totalHits / len(outcomeZero)
     else:
@@ -138,8 +133,8 @@ def uniqueCombinationDice1(combination, halfFull):
         if not halfFull:
             for finalCombination in outcomeOne:
                 finalCombination.append(savedDice)
-                hitFH = checkSmallStraight(finalCombination)
-                if hitFH:
+                hitYathzee = checkThrees(finalCombination)
+                if hitYathzee:
                     totalHits += 1
             chanceToHit = totalHits / len(outcomeOne)
         else:
@@ -165,8 +160,8 @@ def uniqueCombinationDice2(combination, halfFull):
             for finalCombination in outcomeTwo:
                 finalCombination.append(savedDice[0])
                 finalCombination.append(savedDice[1])
-                hitFH = checkSmallStraight(finalCombination)
-                if hitFH:
+                hitYathzee = checkThrees(finalCombination)
+                if hitYathzee:
                     totalHits += 1
             chanceToHit = totalHits / len(outcomeTwo)
         else:
@@ -194,8 +189,8 @@ def uniqueCombinationDice3(combination, halfFull):
                 finalCombination.append(savedDice[0])
                 finalCombination.append(savedDice[1])
                 finalCombination.append(savedDice[2])
-                hitFH = checkSmallStraight(finalCombination)
-                if hitFH:
+                hitYathzee = checkThrees(finalCombination)
+                if hitYathzee:
                     totalHits += 1
             chanceToHit = totalHits / len(outcomeThree)
         else:
@@ -222,8 +217,8 @@ def uniqueCombinationDice4(combination, halfFull):
         if not halfFull:
             for finalDice in outcomeFour:
                 partialCombination[4] = finalDice[0]
-                hitFH = checkSmallStraight(partialCombination)
-                if hitFH:
+                hitYathzee = checkThrees(partialCombination)
+                if hitYathzee:
                     totalHits += 1
             chanceToHit = totalHits / len(outcomeFour)
         else:
@@ -235,10 +230,11 @@ def uniqueCombinationDice4(combination, halfFull):
         if chanceToHit > localMaximumChance:
             localMaximumChance = chanceToHit
             listOfDicePositions[3] = list([pKD1, pKD2, pKD3, pKD4])
+            
     return localMaximumChance
 
 def expectiMaxForTable(combination, halfFull):
-    defaultChance = checkSmallStraight(combination)
+    defaultChance = checkThrees(combination)
     expectiMaxChances = [0] * 6
     if defaultChance:
         expectiMaxChances[-1] = 1
@@ -253,7 +249,10 @@ def expectiMaxForTable(combination, halfFull):
             expectiMaxChances[noOfDicesKept] = uniqueCombinationDice3(combination, halfFull)
         elif noOfDicesKept == 4:
             expectiMaxChances[noOfDicesKept] = uniqueCombinationDice4(combination, halfFull)
+            
     for dice, chance in enumerate(expectiMaxChances):
+        # if combination == [6,6,6,6,6]:
+        #     print("Dice: ", dice, " Chance: ", chance)
         if chance >= defaultChance:
             defaultChance = chance
             numberOfDices = dice
@@ -274,17 +273,26 @@ def CreateExpectiMaxTable():
         oneActionChance, oneActionPositions = expectiMaxForTable(combination, 0)
         twoActionChance, twoActionPositions = expectiMaxForTable(combination, 1)
         expectiMaxAllOutcomesTable[key] = (twoActionChance, twoActionPositions, oneActionChance, oneActionPositions)
+        #expectiMaxAllOutcomesTable[key] = (oneActionChance, oneActionPositions)
     return expectiMaxAllOutcomesTable
 
 def writeCSVFile():
     table = CreateExpectiMaxTable()
     fields = ['Combination', 'TwoChance', 'TwoKeptPositions', 'OneChance', 'OneKeptPositions']
-    #filename = "tableChanceForSS.csv"
+    #filename = "tableChanceForFH.csv"
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fields)
         writer.writeheader()
         rows = [{'Combination': key, 'TwoChance': value[0], 'TwoKeptPositions': value[1], 'OneChance': value[2], 'OneKeptPositions': value[3]} for key, value in table.items()]
         writer.writerows(rows)
+        
+# def writeCSVFile():
+#     table = CreateExpectiMaxTable()
+#     fields = ['Combination', 'OneChance', 'OneKeptPositions']
+#     with open(filename, 'w', newline='') as csvfile:
+#         writer = csv.DictWriter(csvfile, fieldnames=fields)
+#         writer.writeheader()
+#         rows = [{'Combination': key, 'OneChance': value[0], 'OneKeptPositions': value[1]} for key, value in table.items()]
+#         writer.writerows(rows)
 
 writeCSVFile()
-

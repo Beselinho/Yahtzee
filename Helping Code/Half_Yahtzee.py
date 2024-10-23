@@ -5,6 +5,29 @@ allPossible3DiceKept = [(0,1,2), (0,1,3), (0,1,4), (0,2,3), (0,2,4), (0,3,4), (1
 allPossible4DiceKept = [(0,1,2,3), (0,1,2,4), (0,1,3,4), (0,2,3,4), (1,2,3,4)]
 listOfDicePositions = [[] for _ in range(4)] 
 
+
+
+def checkSmallStraight(combination):
+    freqVector = [0] * 7
+    
+    for die in combination:
+        freqVector[die] += 1
+
+    # Check for consecutive sets
+    for start in range(1, 4):  # Only three possible starts (1, 2, 3)
+        if all(freqVector[start + i] > 0 for i in range(4)):
+            return True
+
+    return False
+
+def checkFullHouse(combination):
+    freqVector = [0] * 7
+    for die in combination:
+        freqVector[die] += 1
+    sortedFreq = sorted(freqVector)
+    return sortedFreq[-1] == 3 and sortedFreq[-2] == 2
+
+
 def generateRolls(n, k=6):
     if n:
         for i in range(k, 0, -1):
@@ -13,6 +36,15 @@ def generateRolls(n, k=6):
     else:
         yield []
 
+nr = 0
+allC = list(generateRolls(5))
+for c in allC:
+    if checkFullHouse(c):
+        print(c, "\n")
+        nr += 1
+
+print("-------------", nr)
+        
 def checkScore(combination):
     auxCombination = sorted(combination)
     freqVector = [0] * 7

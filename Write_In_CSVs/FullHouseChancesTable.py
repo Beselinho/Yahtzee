@@ -2,7 +2,7 @@ import csv
 import random as rd
 import ast
 
-filename = "tableChanceForFH.csv"
+filename = "TableFH.csv"
 
 diceValues = range(1,7)
 numberOfDices = 5
@@ -36,6 +36,14 @@ def generateRolls(n, k=6):
                 yield roll + [i]
     else:
         yield []
+
+def generateAllRolls(n, k=6):
+    if n == 0:
+        yield []
+    else:
+        for i in range(1, k+1):
+            for roll in generateAllRolls(n-1, k):
+                yield [i] + roll
 
 def createTableKey(combination):
     freqVector = [0] * 6
@@ -88,7 +96,7 @@ def checkFullHouse(combination):
     return sortedFreq[-1] == 3 and sortedFreq[-2] == 2
 
 def uniqueCombinationDice0(combination, halfFull):
-    outcomeZero = list(generateRolls(5))
+    outcomeZero = list(generateAllRolls(5))
     totalHits = 0
     totalChances = 0
     chanceToHit = 0
@@ -112,7 +120,7 @@ def uniqueCombinationDice1(combination, halfFull):
     allPossible1DiceKept = checkForIdenticPairs(combination, 1)
     for pKD in allPossible1DiceKept:
         savedDice = combination[pKD]
-        outcomeOne = list(generateRolls(4))
+        outcomeOne = list(generateAllRolls(4))
         totalHits = 0
         if not halfFull:
             for finalCombination in outcomeOne:
@@ -138,7 +146,7 @@ def uniqueCombinationDice2(combination, halfFull):
     allPossible2DiceKept = checkForIdenticPairs(combination, 2)
     for pKD1, pKD2 in allPossible2DiceKept:
         savedDice = [combination[pKD1], combination[pKD2]]
-        outcomeTwo = list(generateRolls(3))
+        outcomeTwo = list(generateAllRolls(3))
         totalHits = 0
         if not halfFull:
             for finalCombination in outcomeTwo:
@@ -166,7 +174,7 @@ def uniqueCombinationDice3(combination, halfFull):
     allPossible3DiceKept = checkForIdenticPairs(combination, 3)
     for pKD1, pKD2, pKD3 in allPossible3DiceKept:
         savedDice = [combination[pKD1], combination[pKD2], combination[pKD3]]
-        outcomeThree = list(generateRolls(2))
+        outcomeThree = list(generateAllRolls(2))
         totalHits = 0
         if not halfFull:
             for finalCombination in outcomeThree:
@@ -196,7 +204,7 @@ def uniqueCombinationDice4(combination, halfFull):
     allPossible4DiceKept = checkForIdenticPairs(combination, 4)
     for pKD1, pKD2, pKD3, pKD4 in allPossible4DiceKept:
         partialCombination = [combination[pKD1], combination[pKD2], combination[pKD3], combination[pKD4], 0]
-        outcomeFour = list(generateRolls(1))
+        outcomeFour = list(generateAllRolls(1))
         totalHits = 0
         if not halfFull:
             for finalDice in outcomeFour:
@@ -233,6 +241,7 @@ def expectiMaxForTable(combination, halfFull):
         elif noOfDicesKept == 4:
             expectiMaxChances[noOfDicesKept] = uniqueCombinationDice4(combination, halfFull)
     for dice, chance in enumerate(expectiMaxChances):
+        print(dice, chance)
         if chance >= defaultChance:
             defaultChance = chance
             numberOfDices = dice
